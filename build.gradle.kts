@@ -4,6 +4,11 @@ plugins {
     kotlin("jvm") version "1.4.30"
     application
 }
+buildscript {
+    dependencies {
+        classpath(fileTree("libs/gradle-plugins/kotlin"))
+    }
+}
 
 group = "me.codemitry"
 version = "1.0-SNAPSHOT"
@@ -31,4 +36,19 @@ tasks.withType<KotlinCompile>() {
 
 application {
     mainClassName = "MainKt"
+}
+
+tasks.withType<Jar> {
+    // Otherwise you'll get a "No main manifest attribute" error
+    manifest {
+        attributes["Main-Class"] = "DuKt"
+    }
+
+    // To add all of the dependencies
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
 }
