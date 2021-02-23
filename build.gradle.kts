@@ -4,11 +4,6 @@ plugins {
     kotlin("jvm") version "1.4.30"
     application
 }
-buildscript {
-    dependencies {
-        classpath(fileTree("libs/gradle-plugins/kotlin"))
-    }
-}
 
 group = "me.codemitry"
 version = "1.0-SNAPSHOT"

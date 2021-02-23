@@ -4,18 +4,45 @@ import kotlin.math.floor
 import kotlin.math.log
 import kotlin.math.pow
 
-data class Measure(val bytes: Long, val difference: Int) {
+/**
+ * @author Dmitriy Sokolov
+ *
+ * Stores bytes and allows to convert them to specific unit
+ * @property bytes initial value of bytes
+ * @property kind kind of measure
+ */
+data class Measure(val bytes: Long, val kind: Standards) {
 
-    companion object {
-        /**
-         * Machine-readable difference
-         */
-        const val MRDif = 1024
+    private val difference = Standards.dif(kind)
 
-        /**
-         * Human-readable difference
-         */
-        const val HRDif = 1000
+    enum class Units {
+        B, KB, MB, GB, TB, PB;
+    }
+
+    /**
+     * <tt>SI</tt>: 1 KB = 1000 B
+     * <tt>IEC</tt>: 1 KB = 1024 B
+     */
+    enum class Standards {
+        SI, IEC;
+
+        companion object {
+            /**
+             * @return The value to multiply the original value to get KB from B
+             */
+            fun dif(kind: Standards): Int = when (kind) {
+                SI -> 1000
+                IEC -> 1024
+            }
+        }
+    }
+
+    /**
+     * <tt>NORMAL</tt>: in Kilobytes
+     * <tt>HUMAN_READABLE</tt>: In specific measure, where number is in standard kind: 1 <= x < difference
+     */
+    enum class Formats {
+        NORMAL, HUMAN_READABLE
     }
 
 
@@ -27,18 +54,23 @@ data class Measure(val bytes: Long, val difference: Int) {
             throw IllegalArgumentException("difference must be positive and greater than 1, but actual: $difference")
     }
 
-    fun eval(format: MeasurementFormats): Pair<Measurements, Long> {
+    /**
+     * evaluates these bytes to specific unit
+     * @param format is a format for return value
+     * @return pair of unit and amount in this unit for these bytes
+     */
+    fun eval(format: Formats): Pair<Units, Long> {
 
-        val measurements = Measurements.values()
+        val measurements = Units.values()
         var measurementIdx = 0
 
         val value = when (format) {
-            MeasurementFormats.NORMAL -> {
+            Formats.NORMAL -> {
                 measurementIdx++
                 bytes / difference
             }
 
-            MeasurementFormats.HUMAN_READABLE -> {
+            Formats.HUMAN_READABLE -> {
                 val power = floor(log(bytes.toDouble(), difference.toDouble())).toInt()
 
                 measurementIdx += power
@@ -49,29 +81,4 @@ data class Measure(val bytes: Long, val difference: Int) {
 
         return measurements[measurementIdx] to value
     }
-}
-
-
-// Long may store 63 bits + 1 sign. Petabyte is 2^53 bytes
-enum class Measurements {
-    BYTE, KILOBYTE, MEGABYTE, GIGABYTE, TERABYTE, PETABYTE;
-
-    companion object {
-        fun toString(measurement: Measurements): String = when (measurement) {
-            BYTE -> "B"
-            KILOBYTE -> "KB"
-            MEGABYTE -> "MB"
-            GIGABYTE -> "GB"
-            TERABYTE -> "TB"
-            PETABYTE -> "PB"
-        }
-    }
-}
-
-/**
- * <tt>NORMAL</tt>: in KiloBytes
- * <tt>HUMAN_READABLE</tt>: In specific measure, where number is in standard kind: 1 <= x < difference
- */
-enum class MeasurementFormats {
-    NORMAL, HUMAN_READABLE
 }
