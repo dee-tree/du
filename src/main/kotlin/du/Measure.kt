@@ -13,28 +13,19 @@ import kotlin.math.pow
  */
 data class Measure(val bytes: Long, val kind: Standards) {
 
-    private val difference = Standards.dif(kind)
+    private val difference = kind.diff
 
     enum class Units {
         B, KB, MB, GB, TB, PB;
     }
 
     /**
+     * The value to multiply the original value to get KB from B
      * <tt>SI</tt>: 1 KB = 1000 B
      * <tt>IEC</tt>: 1 KB = 1024 B
      */
-    enum class Standards {
-        SI, IEC;
-
-        companion object {
-            /**
-             * @return The value to multiply the original value to get KB from B
-             */
-            fun dif(kind: Standards): Int = when (kind) {
-                SI -> 1000
-                IEC -> 1024
-            }
-        }
+    enum class Standards(val diff: Int) {
+        SI(1000), IEC(1024)
     }
 
     /**
